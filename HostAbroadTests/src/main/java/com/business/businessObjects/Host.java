@@ -2,7 +2,6 @@ package com.business.businessObjects;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -17,7 +16,6 @@ import com.business.enums.InterestsEnum;
 import com.business.transfers.THost;
 
 @Entity
-@Table
 public class Host {
 	
 	@Id @GeneratedValue(strategy=GenerationType.IDENTITY) 
@@ -25,7 +23,7 @@ public class Host {
 	@Version
 	private int version;
 	@OneToOne 
-	private User user;
+	private UserHA user;
 	private ArrayList<InterestsEnum> listOfInterests;
 	
 	@OneToMany(mappedBy="host")
@@ -34,7 +32,7 @@ public class Host {
 	public Host() {}
 	
 	//full constructor
-	public Host(int id, int version, User user, ArrayList<InterestsEnum> interests,
+	public Host(int id, int version, UserHA user, ArrayList<InterestsEnum> interests,
 			ArrayList<Place> places) {
 		this.id = id;
 		this.version = version;
@@ -47,13 +45,13 @@ public class Host {
 		this.listOfInterests = listOfInterests;
 	}
 	
-	public Host(int id, User user, ArrayList<InterestsEnum> listOfInterests) {
+	public Host(int id, UserHA user, ArrayList<InterestsEnum> listOfInterests) {
 		this.id = id;
 		this.user = user;
 		this.listOfInterests = listOfInterests;
 	}
 	
-	public Host(User user, ArrayList<InterestsEnum> listOfInterests) {
+	public Host(UserHA user, ArrayList<InterestsEnum> listOfInterests) {
 		this.user = user;
 		this.listOfInterests = listOfInterests;
 	}
@@ -74,11 +72,11 @@ public class Host {
 		return this.version;
 	}
 	
-	public void setUser(User user) {
+	public void setUser(UserHA user) {
 		this.user = user;
 	}
 	
-	public User getUser() {
+	public UserHA getUser() {
 		return this.user;
 	}
 	

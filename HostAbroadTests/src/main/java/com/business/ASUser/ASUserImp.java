@@ -1,21 +1,32 @@
 package com.business.ASUser;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.TreeSet;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
+import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 
 import com.business.businessObjects.Host;
+import com.business.businessObjects.Interest;
+import com.business.businessObjects.Language;
 import com.business.businessObjects.Likes;
+import com.business.businessObjects.Matches;
 import com.business.businessObjects.Place;
+import com.business.businessObjects.Rating;
 import com.business.businessObjects.Traveler;
-import com.business.businessObjects.User;
+import com.business.businessObjects.UserHA;
+import com.business.enums.InterestsEnum;
+import com.business.enums.LanguagesEnum;
 import com.business.transfers.THost;
 import com.business.transfers.TPlace;
+import com.business.transfers.TRating;
 import com.business.transfers.TTraveler;
 import com.business.transfers.TUser;
 
@@ -36,14 +47,14 @@ public class ASUserImp implements ASUser {
 			EntityTransaction tr = em.getTransaction();
 			tr.begin();
 
-			User user;
+			UserHA user;
 			try {
-				String query = "SELECT * FROM USER WHERE NICKNAME = ?1 OR EMAIL = ?2";
-				user = (User) em.createNativeQuery(query, User.class).setParameter(1, tUser.getNickname())
+				String query = "SELECT * FROM USERHA WHERE NICKNAME = ?1 OR EMAIL = ?2";
+				user = (UserHA) em.createNativeQuery(query, UserHA.class).setParameter(1, tUser.getNickname())
 						.setParameter(2, tUser.getEmail()).getSingleResult();
 
 			} catch (NoResultException e) {
-				user = new User(tUser.getNickname(), tUser.getFullName(), tUser.getEmail(),
+				user = new UserHA(tUser.getNickname(), tUser.getFullName(), tUser.getEmail(),
 						tUser.getPassword().hashCode());
 				em.persist(user);
 				result = true;
@@ -72,10 +83,10 @@ public class ASUserImp implements ASUser {
 			EntityTransaction tr = em.getTransaction();
 			tr.begin();
 
-			String consulta = "SELECT * FROM USER WHERE email = ?1 AND password = ?2";
-			User result;
+			String consulta = "SELECT * FROM USERHA WHERE email = ?1 AND password = ?2";
+			UserHA result;
 			try {
-				result = (User) em.createNativeQuery(consulta, User.class).setParameter(1, tUser.getEmail())
+				result = (UserHA) em.createNativeQuery(consulta, UserHA.class).setParameter(1, tUser.getEmail())
 						.setParameter(2, tUser.getPassword().hashCode()).getSingleResult();
 				logedUser = new TUser();
 
@@ -117,7 +128,7 @@ public class ASUserImp implements ASUser {
 		EntityTransaction t = em.getTransaction();
 		t.begin();
 
-		User user = em.find(User.class, tHost.getNickname());
+		UserHA user = em.find(UserHA.class, tHost.getNickname());
 
 		if (user != null) {
 			Host host;
@@ -166,7 +177,7 @@ public class ASUserImp implements ASUser {
 		EntityTransaction t = em.getTransaction();
 		t.begin();
 
-		User user = em.find(User.class, tTraveler.getNickname());
+		UserHA user = em.find(UserHA.class, tTraveler.getNickname());
 
 		if (user != null) {
 			Traveler traveler;
@@ -292,48 +303,237 @@ public class ASUserImp implements ASUser {
  		emfactory.close();
 		return traveler;
 	}
-	
-	public ArrayList<TUser> SendersLike(TUser tUser) {
+
+	public ArrayList<TUser> getMyLikes(TUser tUser) {
+
+		 ArrayList<TUser> sendersUser = new ArrayList<TUser>(); //usuarios que nos han enviado like
 		
-		 ArrayList<TUser> sendersUser = new ArrayList<TUser>();
-		
-	
 		try {
 			EntityManagerFactory emf = Persistence.createEntityManagerFactory("HostAbroad");
 			EntityManager em = emf.createEntityManager();
 			EntityTransaction tr = em.getTransaction();
 			tr.begin();
 			
-			TUser tUserSender;
-			for(Integer id : tUser.getLikes()) {
-				
-				String consulta = "SELECT * FROM LIKES WHERE id = ?1";
-				Query query = em.createNativeQuery(consulta, Likes.class);
-				query.setParameter(1, id);
+			UserHA user = em.find(UserHA.class, tUser.getNickname());
+			for(Likes like : user.getLikes()) 
+				sendersUser.add(like.getUserSender().toTransfer());
 	
-				Likes like = null;
-				
-				try {
-					like = (Likes) query.getSingleResult();
-				}
-				catch (NoResultException ex) {
-					System.out.println(ex.getMessage());
-				}
-			
-				tUserSender = new TUser(like.getUserSender().getNickname(), like.getUserSender().getRating(),
-						like.getUserSender().getDescription());
-				
-				sendersUser.add(tUserSender);
-				
-			}
+			tr.commit();
 			em.close();
 			emf.close();
 		}
 		catch (Exception ex) {
 			System.out.println(ex.getMessage());
-		}		
-		
-		
+		}	
 		return  sendersUser;
+	}
+
+	/**
+	 * This method modifies the basic information of an user
+	 * */
+	public boolean modifyInformation(TUser tUser) {
+		boolean isEditPossible = true;
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory("HostAbroad");
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tr = em.getTransaction();
+		tr.begin();
+		
+		UserHA user = em.find(UserHA.class, tUser.getNickname());
+		em.lock(user, LockModeType.OPTIMISTIC);
+		
+		String newEmail = tUser.getEmail();
+		
+		if(!newEmail.equals(user.getEmail())) {
+			String query = "SELECT * FROM USER WHERE EMAIL = ?1";
+			try {
+				UserHA userWithEmailFromTransfer = (UserHA) em.createNativeQuery(query, UserHA.class)
+																	.setParameter(1, tUser.getEmail())
+																	.getSingleResult();
+				isEditPossible = false;
+			}catch(NoResultException ex) {
+			}
+		}
+		
+		if(isEditPossible) {
+			user.setFullName(tUser.getFullName());
+			user.setEmail(newEmail);
+			user.setDescription(tUser.getDescription());
+			//user.setPhoto(tUser.getPhoto());
+			user.setGender(tUser.getGender());
+			user.setBirthday(tUser.getBirthday());
+			this.newLanguages(user.getLanguages(), tUser.getLanguages(), em, user);
+
+			em.persist(user);
+		}
+		
+		tr.commit();
+		em.close();
+		emf.close();
+		return isEditPossible;
+	}
+
+	@SuppressWarnings("unchecked")
+ private void newLanguages(List<Language> oldLanguages, 
+			TreeSet<LanguagesEnum> newLanguages, EntityManager em, UserHA user){
+		int i = 0;
+		int j = 0;
+		Collections.sort(oldLanguages);
+		
+		ArrayList<LanguagesEnum> newLanguagesA = new ArrayList<LanguagesEnum>(newLanguages);
+		
+		while(i < oldLanguages.size() && j < newLanguagesA.size()) {
+			if(oldLanguages.get(i).getLanguage().equals(newLanguagesA.get(j).getString())) {
+				i++;
+				j++;
+			}
+			else if(oldLanguages.get(i).getLanguage().compareTo(newLanguagesA.get(j).getString()) < 0) {
+				em.remove(oldLanguages.get(i));
+				i++;
+			}
+			else {
+				em.persist(new Language(user, newLanguagesA.get(j).getString()));
+				j++;
+			}
+		}
+		
+		while(i < oldLanguages.size()) {
+			em.remove(oldLanguages.get(i));
+			i++;
+		}
+		
+		while(j < newLanguagesA.size()) {
+			em.persist(new Language(user, newLanguagesA.get(j).getString()));
+			j++;
+		}
+	}
+	
+	@Override
+	public boolean rateUser(TRating tRating) {
+
+		boolean result = false; //Devolverá false si ha habido algún error o si ese Sender ya ha valorado a Receiver
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory("HostAbroad");
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tr = em.getTransaction();
+		tr.begin();
+		
+		try {
+			UserHA userSender; // Usuario 1 es el que envia valoracion
+			UserHA userReceiver; // Usuario 2 es el que la recibe
+			userSender = em.find(UserHA.class, tRating.getUserSender());
+			userReceiver = em.find(UserHA.class, tRating.getUserReceiver());
+			em.persist(new Rating(userSender, userReceiver, tRating.getRate()));
+			
+			tr.commit();
+			result = true;
+		} catch (Exception ex) {
+			tr.rollback();
+		}
+			
+		em.close();
+		emf.close();
+		return result;
+	}
+
+	@Override
+	public TUser readUserNickName(TUser user) {
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory("HostAbroad");
+		EntityManager em = emf.createEntityManager();
+		
+		String queryStr = "SELECT NICKNAME FROM USERHA WHERE EMAIL = ?1";
+		Query query = em.createNativeQuery(queryStr, UserHA.class);
+		query.setParameter(1, user.getEmail());
+		TUser nickname = null;
+		try {
+			UserHA userNick = (UserHA)query.getSingleResult();
+			nickname = userNick.toTransfer();
+		}
+		catch (NoResultException ex) {
+			System.out.println(ex.getMessage());
+		}
+		
+		em.close();
+		emf.close();
+		
+		return nickname;
+	}
+	
+	@Override
+	public TUser readUser(TUser tUser) {
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory("HostAbroad");
+		EntityManager em = emf.createEntityManager();		
+		UserHA user = em.find(UserHA.class, tUser.getNickname());
+		em.close();
+		emf.close();
+		return user.toTransfer();
+	}
+
+	@Override
+	public ArrayList<TUser> readMyMatches(TUser tUser) {
+		 ArrayList<TUser> myMatches = new ArrayList<TUser>();
+			
+			
+			try {
+				EntityManagerFactory emf = Persistence.createEntityManagerFactory("HostAbroad");
+				EntityManager em = emf.createEntityManager();
+				EntityTransaction tr = em.getTransaction();
+				tr.begin();
+				UserHA user = em.find(UserHA.class, tUser.getNickname());
+				for(Matches match : user.getMatchesReceiver())
+						myMatches.add(match.getUserSender().toTransfer());
+				for(Matches match : user.getMatchesSender())
+						myMatches.add(match.getUserReceiver().toTransfer());
+				tr.commit();
+				em.close();
+				emf.close();
+			}
+			catch (Exception ex) {
+				System.out.println(ex.getMessage());
+			}	
+			return myMatches;
+	}
+
+	@Override
+	public void modifyInterests(TUser tUser) {
+		EntityManagerFactory emf = Persistence.createEntityManagerFactory("HostAbroad");
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tr = em.getTransaction();
+		tr.begin();
+		
+		UserHA user = em.find(UserHA.class, tUser.getNickname());
+		em.lock(user, LockModeType.OPTIMISTIC);
+		
+		List<Interest> oldInterests = user.getInterests();
+		ArrayList<InterestsEnum> newInterests = new ArrayList<InterestsEnum>(tUser.getInterests());
+		int i = 0;
+		int j = 0;
+		Collections.sort(oldInterests);
+		
+		while(i < oldInterests.size() && j < newInterests.size()) {
+			if(oldInterests.get(i).getInterest().equals(newInterests.get(j).getString())) {
+				i++;
+				j++;
+			}
+			else if(oldInterests.get(i).getInterest().compareTo(newInterests.get(j).getString()) < 0) {
+				em.remove(oldInterests.get(i));
+				i++;
+			}
+			else {
+				em.persist(new Interest(user, newInterests.get(j).getString()));
+				j++;
+			}
+		}
+		
+		while(i < oldInterests.size()) {
+			em.remove(oldInterests.get(i));
+			i++;
+		}
+		
+		while(j < newInterests.size()) {
+			em.persist(new Interest(user, newInterests.get(j).getString()));
+			j++;
+		}
+		tr.commit();
+		em.close();
+		emf.close();
 	}
 }

@@ -1,137 +1,148 @@
 package com.presentation.myPlacesUI;
 
+
+import com.business.enums.FamilyUnit;
+import com.business.transfers.TPlace;
+import com.presentation.commands.CommandEnum.Commands;
+import com.presentation.controller.Controller;
+import com.presentation.headerAndFooter.Footer;
+import com.presentation.headerAndFooter.Header;
+import com.presentation.loginUI.AuthService;
+import com.vaadin.annotations.Theme;
+import com.vaadin.server.*;
+import com.vaadin.shared.ui.slider.SliderOrientation;
+import com.vaadin.ui.*;
+import org.vaadin.easyuploads.UploadField;
+
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
-import com.vaadin.server.FileResource;
-import com.vaadin.server.Page;
-import com.vaadin.server.VaadinRequest;
-import com.vaadin.server.VaadinService;
-import com.vaadin.shared.Position;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.GridLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Image;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.TextArea;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.Upload;
-import com.vaadin.ui.Upload.Receiver;
-import com.vaadin.ui.Upload.SucceededEvent;
-import com.vaadin.ui.Upload.SucceededListener;
-import com.vaadin.ui.VerticalLayout;
-
+@Theme("mytheme")
 public class MyPlacesUI extends UI {
 
 	@Override
 	protected void init(VaadinRequest request) {
-		HorizontalLayout mainLayout = new HorizontalLayout();
-
-		VerticalLayout secondaryLayout = new VerticalLayout();
 		
-		GridLayout grid = new GridLayout(2, 2);
-		grid.setSpacing(true);
+		GridLayout mainGrid = new GridLayout(1, 2);
+		mainGrid.setSpacing(true);
+		mainGrid.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+		GridLayout sections = new GridLayout(2, 1);
+		sections.setSpacing(true);
+		sections.setMargin(true);
+		sections.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+		VerticalLayout image = new VerticalLayout();
+		image.setSpacing(true);
+		image.setMargin(true);
+		image.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+		GridLayout fields = new GridLayout(2, 2);
+		fields.setSpacing(true);
+		fields.setMargin(true);
+		fields.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
 
+		Image placeImg = new Image();
+		placeImg.setSource(new ExternalResource("https://raw.githubusercontent.com/OmegaSkyres/images/master/null.png"));
+		placeImg.setId("PlaceImage");
 
+		UploadField uploadField = new UploadField();
+		uploadField.setId("uploadField");
+		uploadField.setClearButtonVisible(false);
+		uploadField.setButtonCaption("Select image");
 		
-		Upload upload = new Upload("Add an image", configureReciever());
-		upload.setImmediateMode(false);
-		upload.setButtonCaption("Upload");
+		Button changeImg = new Button("Change image");
+		changeImg.setIcon(FontAwesome.UPLOAD);
+		changeImg.addClickListener(event -> {
+			Notification.show("File: " + uploadField.getLastFileName());
+		});
+		changeImg.setId("PlaceChangeImg");
 		
+		image.addComponent(placeImg);
+		image.addComponent(uploadField);
+		
+		sections.addComponent(image, 0, 0);
 		
 		TextArea description = new TextArea("Description");
 		description.setWordWrap(false);
+		description.setHeight("90%");
+		description.setWidth("150%");
 		description.setId("PlaceDescription");
-		grid.addComponent(description, 0, 0);
 
-		ComboBox<String> duration = new ComboBox<>("How long can I host");
-		initDuration(duration);
-		duration.setId("PlaceDuration");
-		grid.addComponent(duration, 1, 0);
+		TextField address = new TextField("Address");
+		address.setId("PlaceAddress");
+		address.setWidth("150%");
 
-		ComboBox<String> country = new ComboBox<>("I live");
-		country.setItems("My house", "Sahara", "Bulgaria", "Mars");
-		country.setId("PlaceCountry");
-		grid.addComponent(country, 0, 1);
 
-		Button save = new Button("Save");
+
+        // Create a horizontal slider
+        Slider duration = new Slider("Maximum duration of stay: ", 0, 4);
+        duration.setId("slider");
+        duration.setOrientation(SliderOrientation.HORIZONTAL);
+        duration.setWidth("200px");
+        Label days = new Label("Days");
+        duration.addValueChangeListener(event -> {
+            if(duration.getValue() == 0.0) {
+					days.setValue("Days");
+				}
+				else if(duration.getValue() == 1.0) {
+					days.setValue("1 Day - 6 Days");
+				}
+				else if(duration.getValue() == 2.0) {
+					days.setValue("1 Week - 2 Weeks");
+				}
+				else if(duration.getValue() == 3.0) {
+					days.setValue("2 Weeks - 4 Weeks");
+				}
+				else if(duration.getValue() == 4.0) {
+					days.setValue("1 Month or more");
+				}
+				else if(duration.getValue() == 5.0) {
+					days.setValue("More than a month");
+				}
+        });
+
+		ComboBox<String> unitfamily = new ComboBox<>("I live with");
+		unitfamily.setItems("Single", "With friends", "With family");
+		unitfamily.setTextInputAllowed(false);
+		unitfamily.setId("unitFamily");
+		
+		fields.addComponent(address, 0, 0);
+		fields.addComponent(description, 1, 0);
+		fields.addComponent(days, 0, 1);
+		fields.addComponent(duration, 1, 1);
+		sections.addComponent(fields, 1, 0);
+
+		Button save = new Button("Save", FontAwesome.SAVE);
+		save.setId("saveButton");
+		save.setStyleName("v-button-register");
 		save.addClickListener(event->{
-				Notification notif = new Notification( "In construction.");
-				notif.setDelayMsec(2000);
-				notif.setPosition(Position.MIDDLE_CENTER);
-				notif.show(Page.getCurrent());
+			FamilyUnit familyUnit;
+			if(unitfamily.getValue().equals("Alone")){
+				familyUnit = FamilyUnit.Alone;
+			}
+			else if(unitfamily.getValue().equals("With family")){
+				familyUnit = FamilyUnit.Family;
+			}
+			else{
+				familyUnit = FamilyUnit.Friends;
+			}
+				if(address.getValue().length() > 0 && address.getValue().length() < 50){
+					TPlace tPlace = new TPlace(address.getValue(),description.getValue(), new ArrayList<>(),"",familyUnit, AuthService.getUserNickName());
+					Controller.getInstance().action(Commands.CommandAddPlace, tPlace);
+				}
+				else {
+					Notification.show("Invalid Address", Notification.Type.ERROR_MESSAGE);
+				}
 			
 		});
-		save.setId("PlaceSave");
 		
+		mainGrid.addComponent(sections);
+		mainGrid.addComponent(save);
 		
-		mainLayout.addComponent(upload);
-		secondaryLayout.addComponent(grid);
-		secondaryLayout.addComponent(save);
-		secondaryLayout.setComponentAlignment(save, Alignment.MIDDLE_CENTER);
-		mainLayout.addComponent(secondaryLayout);
-		this.setContent(mainLayout);
 	}
 
-	private Receiver configureReciever() {
-		// Show uploaded file in this placeholder
-		Image image = new Image("Uploaded Image");
 
-		// Implement both receiver that saves upload in a file and
-		// listener for successful upload
-		class ImageReceiver implements Receiver, SucceededListener {
 
-            public File file;
-            
-            //FTPClient ftp = new FTPClient();
-            
-            public OutputStream receiveUpload(String filename,
-                                              String mimeType) {
-                // Create upload stream
-            	OutputStream fos; // Stream to write to
-                try {
-                	/*ftp.connect("ftp://waws-prod-db3-087.ftp.azurewebsites.windows.net");
-                	ftp.login("HostAbroad\\HostAbroad", "Ftp12345");*/
-                    // Open the file for writing.
-                    file = new File(filename);
-                    fos = new FileOutputStream(file);
-                    FileInputStream fis = new FileInputStream(file);
-                    /*ftp.storeFile(filename, fis);
-                    ftp.logout();*/
-                } catch (IOException e) {
-                    new Notification("Could not open file<br/>",
-                                     e.getMessage(),
-                                     Notification.Type.ERROR_MESSAGE)
-                        .show(Page.getCurrent());
-                    return null;
-                }
-                return fos; // Return the output stream to write to
-            }
 
-            public void uploadSucceeded(SucceededEvent event) {
-                // Show the uploaded file in the image viewer
-                image.setVisible(true);
-                image.setSource(new FileResource(file));
-            }
-        };
-        ImageReceiver receiver = new ImageReceiver();
-        
-        
-		// Create the upload with a caption and set receiver later
-		Upload upload = new Upload("Upload Image Here", receiver);
-		upload.addSucceededListener(receiver);
-		return receiver;
-	}
-	
 	private Image loadImage(String url) {
 		//reading the image
 		//-----------------------------------
@@ -158,3 +169,4 @@ public class MyPlacesUI extends UI {
 	}
 
 }
+
