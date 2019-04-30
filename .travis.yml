@@ -6,9 +6,6 @@ env: DB=mysql
 before_script: mysql -e 'create database hostabroad;'; 
                mysql -u root --password="" < src/test/database.sql;
 before_install: cd HostAbroadTests
-#script: mvn surefire:test -Dtest=UserTest;
+script: mvn surefire:test -Dtest=UserTest;
 
-       
-
-       
-
+ 
