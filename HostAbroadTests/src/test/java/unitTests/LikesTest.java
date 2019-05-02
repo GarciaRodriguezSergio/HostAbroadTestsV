@@ -19,7 +19,7 @@ import com.business.enums.FamilyUnit;
 import com.business.enums.InterestsEnum;
 import com.business.enums.KnowledgesEnum;
 
-public class LikesTestHU23 {
+public class LikesTest {
 
 	@Test
 	public void test() {
