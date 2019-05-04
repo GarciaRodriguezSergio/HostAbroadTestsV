@@ -27,7 +27,7 @@
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="user.variant" value=""/>
     <property name="os.name" value="Windows 10"/>
-    <property name="classworlds.conf" value="C:\Users\Sergio\eclipse-workspace\.metadata\.plugins\org.eclipse.m2e.launching\launches\m2conf7935667727012314144.tmp"/>
+    <property name="classworlds.conf" value="C:\Users\Sergio\eclipse-workspace\.metadata\.plugins\org.eclipse.m2e.launching\launches\m2conf1024758693843860624.tmp"/>
     <property name="sun.jnu.encoding" value="Cp1252"/>
     <property name="java.library.path" value="C:\Program Files\Java\jdk1.8.0_131\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:/Program Files/Java/jdk1.8.0_131/jre/bin/server;C:/Program Files/Java/jdk1.8.0_131/jre/bin;C:/Program Files/Java/jdk1.8.0_131/jre/lib/amd64;C:\Program Files\Microsoft MPI\Bin\;C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\Program Files\Microsoft SQL Server\130\Tools\Binn\;C:\Program Files\dotnet\;C:\Program Files (x86)\GtkSharp\2.12\bin;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\140\Tools\Binn\;C:\Program Files\Microsoft SQL Server\140\Tools\Binn\;C:\Program Files\Microsoft SQL Server\140\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\Client SDK\ODBC\130\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\140\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\140\Tools\Binn\ManagementStudio\;C:\Program Files\nodejs\;C:\Program Files\Git\cmd;C:\RailsInstaller\Git\cmd;C:\RailsInstaller\Ruby2.3.0\bin;C:\Users\Sergio\Documents\anaconda;C:\Users\Sergio\Documents\anaconda\Scripts;C:\Users\Sergio\Documents\anaconda\Library\bin;C:\Users\Sergio\AppData\Local\Microsoft\WindowsApps;C:\Users\Sergio\AppData\Roaming\npm;C:\Users\Sergio\AppData\Local\Programs\Microsoft VS Code\bin;E:\Intellij\IntelliJ IDEA 2018.3.2\bin;C:\WINDOWS\System32;;."/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
@@ -44,7 +44,7 @@
     <property name="java.vm.specification.version" value="1.8"/>
     <property name="sun.arch.data.model" value="64"/>
     <property name="java.home" value="C:\Program Files\Java\jdk1.8.0_131\jre"/>
-    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher -B install"/>
+    <property name="sun.java.command" value="org.codehaus.plexus.classworlds.launcher.Launcher -B test"/>
     <property name="java.specification.vendor" value="Oracle Corporation"/>
     <property name="user.language" value="es"/>
     <property name="user.language.format" value="en"/>
