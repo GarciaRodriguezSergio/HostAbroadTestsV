@@ -68,13 +68,13 @@ public class ASLikesImpHU23Test {
 		EntityTransaction tr = em.getTransaction();
 		tr.begin();
 		
-		Likes like = em.find(Likes.class, 5);
+		Likes like = em.find(Likes.class, tlike);
 		tr.commit();
 		
 		em.close();
 		emf.close();
 		
-		ArrayList<Likes> likes = new ArrayList<Likes>();
+		ArrayList<Likes> likes = new ArrayList<>();
 		likes.add(like);
 		
 		assertEquals(like.getUserSender().getNickname(), user1.getNickname());
