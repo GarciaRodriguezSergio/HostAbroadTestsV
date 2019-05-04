@@ -1,0 +1,13 @@
+div.vaadin-textfield-multiline .v-textfield {
+	cursor: pointer;
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+}
+
+div.vaadin-textfield-multiline .v-textarea {
+	box-sizing: border-box;
+	position: relative;
+	z-index: 5000;
+}
